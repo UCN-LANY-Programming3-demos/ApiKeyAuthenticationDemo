@@ -1,24 +1,31 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using System.ComponentModel.DataAnnotations;
 
 namespace KeyAuthenticationWithAttribute.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public class ApiKeyAuthenticateAttribute : ActionFilterAttribute
+    public class KeyAuthorizeAttribute : ActionFilterAttribute
     {
-        private const string API_KEY_NAME = "Client-Authentication-Key";
-        private const string API_KEY_VALUE = "F147A2F0-9E7B-455B-BDBF-1BE554D95E73"; // In this example the key is hardcoded, but it should be stored in a file or a database. Also, each client should have its own unique key.
+        private readonly string _apiKeyName;
+        private readonly string _apiKeyValue;
+
+        public KeyAuthorizeAttribute(string header = "Client-Authentication-Key")
+        {
+            _apiKeyName = header;
+            _apiKeyValue = "F147A2F0-9E7B-455B-BDBF-1BE554D95E73";
+        }
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             // if NoApiKeyAuthentication then skip
-            var skipAuthentication = context.ActionDescriptor.FilterDescriptors.Any(d => d.Filter is NoApiKeyAuthenticateAttribute);
+            var skipAuthentication = context.ActionDescriptor.EndpointMetadata.Any(a => a is AllowAnonymousAttribute);
 
             if (!skipAuthentication)
             {
                 // First, check if the header is provided
-                if (!context.HttpContext.Request.Headers.TryGetValue(API_KEY_NAME, out var providedAuthenticationKey))
+                if (!context.HttpContext.Request.Headers.TryGetValue(_apiKeyName, out var providedAuthenticationKey))
                 {
                     context.Result = new ContentResult()
                     {
@@ -29,7 +36,7 @@ namespace KeyAuthenticationWithAttribute.Filters
                 }
 
                 // Next, check if the key is correct
-                if (!API_KEY_VALUE.Equals(providedAuthenticationKey, StringComparison.InvariantCultureIgnoreCase))
+                if (!_apiKeyValue.Equals(providedAuthenticationKey, StringComparison.InvariantCultureIgnoreCase))
                 {
                     context.Result = new ContentResult()
                     {

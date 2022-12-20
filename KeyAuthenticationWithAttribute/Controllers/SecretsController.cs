@@ -1,12 +1,20 @@
 ﻿using KeyAuthenticationWithAttribute.Filters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KeyAuthenticationWithAttribute.Controllers
 {
     [Route("api/v1/[controller]")]
-    [ApiController, ApiKeyAuthenticate]  
+    [ApiController, KeyAuthorize]  
     public class SecretsController : ControllerBase
     {
+        private readonly IConfiguration _config;
+
+        public SecretsController(IConfiguration config)
+        {
+            _config = config;
+        }
+
         [HttpGet("secret")]
         public IActionResult GetSecret()
         {
@@ -14,7 +22,7 @@ namespace KeyAuthenticationWithAttribute.Controllers
         }
 
         [HttpGet("known")]
-        [NoApiKeyAuthenticate]
+        [AllowAnonymous]
         public IActionResult GetKnown()
         {
             return Ok("It is known");
