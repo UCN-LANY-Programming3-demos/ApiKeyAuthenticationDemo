@@ -9,14 +9,18 @@ namespace KeyAuthenticationWithAttribute.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class KeyAuthorizeAttribute : Attribute, IAuthorizationFilter
     {
-        private readonly string _apiKeyName;
-        private readonly string[] _apiKeys;
+        private readonly string _httpHeaderName;
+        private readonly string[] _authorizedKeys; 
 
         public KeyAuthorizeAttribute(string header = "Client-Authentication-Key")
         {
-            _apiKeyName = header;
-            _apiKeys = new[] { "F147A2F0-9E7B-455B-BDBF-1BE554D95E73", "F147A2F0-9E7B-455B-BDBF-1BE554D95E74" };
+            _httpHeaderName = header;
+            _authorizedKeys = new[] { "F147A2F0-9E7B-455B-BDBF-1BE554D95E73", "F147A2F0-9E7B-455B-BDBF-1BE554D95E74" };
         }
+
+        public string ApiHeaderName => _httpHeaderName;
+
+        public string[] ApiKeys => _authorizedKeys;
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
@@ -29,18 +33,18 @@ namespace KeyAuthenticationWithAttribute.Filters
             }
 
             // Checks if the header is provided
-            if (!context.HttpContext.Request.Headers.TryGetValue(_apiKeyName, out var providedAuthenticationKey))
+            if (!context.HttpContext.Request.Headers.TryGetValue(_httpHeaderName, out var providedAuthenticationKey))
             {
                 context.Result = new ContentResult()
                 {
                     StatusCode = StatusCodes.Status403Forbidden,
-                    Content = $"Authentication header [{_apiKeyName}] not found"
+                    Content = $"Authentication header [{_httpHeaderName}] not found"
                 };
                 return;
             }
 
             // Checks if the key is correct
-            if (!_apiKeys.Any(k => k.Equals(providedAuthenticationKey, StringComparison.InvariantCultureIgnoreCase)))
+            if (!_authorizedKeys.Any(k => k.Equals(providedAuthenticationKey, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.Result = new ContentResult()
                 {
