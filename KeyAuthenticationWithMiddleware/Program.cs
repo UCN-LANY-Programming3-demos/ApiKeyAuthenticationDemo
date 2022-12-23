@@ -14,7 +14,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseMiddleware<ApiKeyAuthenticateMiddleware>(); // Adds the custom authentication middleware to the pipeline
+app.UseMiddleware<ApiKeyAuthorizeMiddleware>(); // Adds the custom authentication middleware to the pipeline
 
 app.MapControllers();
 

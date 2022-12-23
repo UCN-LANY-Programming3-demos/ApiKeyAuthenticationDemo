@@ -30,7 +30,7 @@ namespace KeyAuthenticationWithAttribute.Filters
                 context.Result = new ContentResult()
                 {
                     StatusCode = StatusCodes.Status403Forbidden,
-                    Content = $"Authentication header [{_httpHeaderName}] not found"
+                    Content = $"Authentication header [{_httpHeaderName}] not found (using KeyAuthorizeAttribute)"
                 };
                 return;
             }
@@ -44,7 +44,7 @@ namespace KeyAuthenticationWithAttribute.Filters
                 context.Result = new ContentResult()
                 {
                     StatusCode = StatusCodes.Status403Forbidden,
-                    Content = $"No authentication keys found"
+                    Content = $"No authentication keys found (using KeyAuthorizeAttribute)"
                 };
                 return;
             }
@@ -55,7 +55,7 @@ namespace KeyAuthenticationWithAttribute.Filters
                 context.Result = new ContentResult()
                 {
                     StatusCode = StatusCodes.Status401Unauthorized,
-                    Content = "Invalid authentication key (using ApiKeyAuthenticateAttribute)"
+                    Content = "Invalid authentication key (using KeyAuthorizeAttribute)"
                 };
                 return;
             }            
