@@ -8,17 +8,11 @@ namespace KeyAuthenticationWithAttribute.Filters
     public class KeyAuthorizeAttribute : Attribute, IAuthorizationFilter
     {
         private readonly string _httpHeaderName;
-        private readonly string[] _authorizedKeys; 
-
+    
         public KeyAuthorizeAttribute(string header = "Client-Authentication-Key")
         {
             _httpHeaderName = header;
-            _authorizedKeys = new[] { "F147A2F0-9E7B-455B-BDBF-1BE554D95E73", "F147A2F0-9E7B-455B-BDBF-1BE554D95E74" };
         }
-
-        public string ApiHeaderName => _httpHeaderName;
-
-        public string[] ApiKeys => _authorizedKeys;
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
@@ -41,7 +35,21 @@ namespace KeyAuthenticationWithAttribute.Filters
                 return;
             }
 
-            // Checks if the key is correct
+            var configuration = context.HttpContext.RequestServices.GetService<IConfiguration>();
+
+            if (configuration == null)
+            {
+                context.Result = new ContentResult()
+                {
+                    StatusCode = StatusCodes.Status403Forbidden,
+                    Content = $"No authentication keys found"
+                };
+                return;
+            }
+
+            string[] _authorizedKeys = configuration.GetSection("ClientAuthenticationKeys").Get<string[]>();
+
+            // Checks if the provided key is allowed
             if (!_authorizedKeys.Any(k => k.Equals(providedAuthenticationKey, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.Result = new ContentResult()
