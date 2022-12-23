@@ -35,9 +35,11 @@ namespace KeyAuthenticationWithAttribute.Filters
                 return;
             }
 
+            // Checks if configuration lists allowed keys
             var configuration = context.HttpContext.RequestServices.GetService<IConfiguration>();
+            string[]? authorizedKeys = configuration?.GetSection("ClientAuthenticationKeys").Get<string[]>();
 
-            if (configuration == null)
+            if (configuration == null || authorizedKeys == null)
             {
                 context.Result = new ContentResult()
                 {
@@ -47,10 +49,8 @@ namespace KeyAuthenticationWithAttribute.Filters
                 return;
             }
 
-            string[] _authorizedKeys = configuration.GetSection("ClientAuthenticationKeys").Get<string[]>();
-
             // Checks if the provided key is allowed
-            if (!_authorizedKeys.Any(k => k.Equals(providedAuthenticationKey, StringComparison.InvariantCultureIgnoreCase)))
+            if (!authorizedKeys.Any(k => k.Equals(providedAuthenticationKey, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.Result = new ContentResult()
                 {
